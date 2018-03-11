@@ -5,7 +5,7 @@
 version_ge() { test "$(echo "$1 $2" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 
 check_bbr_kernel_version() {
-  local BBR_VERSION="5.9"
+  local BBR_VERSION="4.9"
   local kernel_version=$(uname -r | cut -d - -f 1)
   version_ge "${kernel_version}" "$BBR_VERSION"
 }

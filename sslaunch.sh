@@ -3,7 +3,8 @@
 # install & launch ssserver on ubuntu
 
 CONFIG_FILE="/etc/shadowsocks/config.json"
-QRCOED_FILE="/etc/shadowsocks/ssserver.qrcode"
+QRCOED_IPv4_FILE="/etc/shadowsocks/ss_qrcode_ipv4.log"
+QRCOED_IPv6_FILE="/etc/shadowsocks/ss_qrcode_ipv6.log"
 CIPHERS=(
   aes-256-gcm
   aes-128-gcm
@@ -41,7 +42,6 @@ pre_install() {
 launch() {
   cipher=`rand_cipher`
   passwd=`pwgen`
-  public_ip=`curl -s ipv4.canhazip.com`
   port=`rand_port`
   while port_check "$port"; do
     port=`rand_port`
@@ -49,7 +49,7 @@ launch() {
 
   cat > "$CONFIG_FILE" <<-EOF
 		{
-		    "server": "0.0.0.0",
+		    "server": "::",
 		    "server_port": ${port},
 		    "local_address": "127.0.0.1",
 		    "local_port": 1080,
@@ -60,10 +60,22 @@ launch() {
 		}
 	EOF
 
-  # protocol ss://method:password@hostname:port
-  configuration="${cipher}:${passwd}@${public_ip}:${port}"
-  ss_url="ss://`echo $configuration | base64`"
   ssserver -c "$CONFIG_FILE" -d start
-  echo "configuration QRCode saved to $QRCOED_FILE"
-  qrencode -t UTF8 -l H "$ss_url" | tee "$QRCOED_FILE"
+
+
+  public_ipv4=`curl -s4 icanhazip.com`
+  public_ipv6=`curl -s6 icanhazip.com`
+  # protocol ss://method:password@hostname:port
+  config_ipv4="${cipher}:${passwd}@${public_ipv4}:${port}"
+  config_ipv6="${cipher}:${passwd}@${public_ipv6}:${port}"
+  ss_ipv4_url="ss://`echo $config_ipv4 | base64`"
+  ss_ipv6_url="ss://`echo $config_ipv6 | base64`"
+
+  echo
+  echo "shadowsocks server ipv4 config QRCode saved to $QRCOED_IPv4_FILE"
+  qrencode -t UTF8 -l H "$ss_ipv4_url" | tee "$QRCOED_IPv4_FILE"
+  echo
+  echo
+  echo "shadowsocks server ipv6 config QRCode saved to $QRCOED_IPv6_FILE"
+  qrencode -t UTF8 -l M "$ss_ipv6_url" | tee "$QRCOED_IPv6_FILE"
 }
