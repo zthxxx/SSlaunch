@@ -90,8 +90,8 @@ launch() {
   # protocol ss://method:password@hostname:port
   config_ipv4="${cipher}:${passwd}@${public_ipv4}:${port}"
   config_ipv6="${cipher}:${passwd}@${public_ipv6}:${port}"
-  ss_ipv4_url="ss://`echo $config_ipv4 | base64`"
-  ss_ipv6_url="ss://`echo $config_ipv6 | base64`"
+  ss_ipv4_url="ss://`echo $config_ipv4 | base64 -w 0`"
+  ss_ipv6_url="ss://`echo $config_ipv6 | base64 -w 0`"
 
   echo
   echo "shadowsocks server ipv4 config QRCode saved to $QRCOED_IPv4_FILE"
