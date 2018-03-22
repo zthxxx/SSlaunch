@@ -22,6 +22,7 @@ port_hold_check() { netstat -tlpn | awk '{print $4}' | cut -d ':' -f 2 | grep -E
 rand_cipher() { shuf -e "${CIPHERS[@]}" -n 1; }
 
 install_shadowsocks() {
+  apt-get install -y libsodium-dev
   apt-get install -y python3-pip
   pip3 install setuptools
   pip3 install git+https://github.com/shadowsocks/shadowsocks.git@master
@@ -30,23 +31,18 @@ install_shadowsocks() {
 install_qrencode() { apt-get install -y qrencode; }
 
 run_on_startup() {
-  if [ -f /etc/rc.local ]; then 
-    sed -i '/ssserver/d' /etc/rc.local
-    echo "ssserver -c $CONFIG_FILE -d start" >> /etc/rc.local
-  else
-    cat > "$SERVICE_FILE" <<-EOF
-			[Unit]
-			Description=Shadowsocks
-			
-			[Service]
-			TimeoutStartSec=0
-			ExecStart=/usr/bin/ssserver -c ${CONFIG_FILE}
-			
-			[Install]
-			WantedBy=multi-user.target
-		EOF
-    systemctl enable shadowsocks
-  fi
+  cat > "$SERVICE_FILE" <<-EOF
+		[Unit]
+		Description=Shadowsocks
+		
+		[Service]
+		ExecStart=/usr/bin/env ssserver -c ${CONFIG_FILE}
+		
+		[Install]
+		WantedBy=multi-user.target
+	EOF
+  systemctl daemon-reload
+  systemctl enable shadowsocks
 }
 
 pre_install() {
@@ -82,8 +78,9 @@ launch() {
 		}
 	EOF
 
-  ssserver -c "$CONFIG_FILE" -d start
-
+  # launch ss with manually or systemd 
+  # ssserver -c "$CONFIG_FILE" -d start
+  systemctl restart shadowsocks
 
   public_ipv4=`curl -s4 icanhazip.com`
   public_ipv6=`curl -s6 icanhazip.com`
