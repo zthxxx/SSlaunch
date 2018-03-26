@@ -21,12 +21,21 @@ port_hold_check() { netstat -tlpn | awk '{print $4}' | cut -d ':' -f 2 | grep -E
 
 rand_cipher() { shuf -e "${CIPHERS[@]}" -n 1; }
 
+install_libsodium() {
+  apt-get install -y build-essential libsodium-dev
+  wget https://download.libsodium.org/libsodium/releases/LATEST.tar.gz -O libsodium-stable.tar.gz
+  tar xf libsodium-stable.tar.gz
+  cd libsodium-stable
+  ./configure --prefix=/usr && make && make install
+  ldconfig
+  cd ..
+  rm -rf libsodium-stable.tar.gz libsodium-stable
+}
+
 install_shadowsocks() {
-  apt-get install -y libsodium-dev
-  apt-get install -y python3-pip
+  apt-get install -y libsodium-dev python3-pip
   pip3 install setuptools
-  pip3 install git+https://github.com/shadowsocks/shadowsocks.git@master || 
-  pip3 install shadowsocks
+  pip3 install -U https://github.com/shadowsocks/shadowsocks/archive/master.zip
 }
 
 install_qrencode() { apt-get install -y qrencode; }
@@ -88,6 +97,12 @@ launch() {
   # launch ss with manually or systemd 
   # ssserver -c "$CONFIG_FILE" -d start
   systemctl restart shadowsocks
+
+  if ! systemctl status shadowsocks; then
+    echo
+    echo "[ERROR] shadowsocks server launch failed, plz check the status log."
+    return 1
+  fi
 
   public_ipv4=`curl -s4 icanhazip.com`
   public_ipv6=`curl -s6 icanhazip.com`
