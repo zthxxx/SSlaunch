@@ -25,7 +25,8 @@ install_shadowsocks() {
   apt-get install -y libsodium-dev
   apt-get install -y python3-pip
   pip3 install setuptools
-  pip3 install git+https://github.com/shadowsocks/shadowsocks.git@master
+  pip3 install git+https://github.com/shadowsocks/shadowsocks.git@master || 
+  pip3 install shadowsocks
 }
 
 install_qrencode() { apt-get install -y qrencode; }
@@ -58,6 +59,12 @@ pre_install() {
 }
 
 launch() {
+  if ! command -v "ssserver" > /dev/null; then
+    echo
+    echo "[ERROR] shadowsocks is not installed! Cannot to launch it!"
+    return 1
+  fi
+
   cipher=`rand_cipher`
   passwd=`pwgen`
   port=`rand_port`

@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/zthxxx/SSlaunch" target="_blank"><img src="https://img.shields.io/github/languages/code-size/zthxxx/sslaunch.svg" alt="Code Size"></a>
-  <a href="https://www.ubuntu.com/server" target="_blank"><img src="https://img.shields.io/badge/platform-ubuntu-brightgreen.svg" alt="Platform Support"></a>
+  <a href="https://www.ubuntu.com/server" target="_blank"><img src="https://img.shields.io/badge/platform-Debian_Ubuntu-brightgreen.svg" alt="Platform Support"></a>
   <a href="http://kernel.ubuntu.com/~kernel-ppa/mainline" target="_blank"><img src="https://img.shields.io/badge/kernel-4.9+-blue.svg" alt="Kernel Support"></a>
   <a href="https://github.com/zthxxx/SSlaunch/blob/master/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/zthxxx/SSlaunch.svg" alt="License"></a>
 </p>
