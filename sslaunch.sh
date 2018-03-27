@@ -13,24 +13,13 @@ CIPHERS=(
   chacha20-ietf
 )
 
-pwgen() { head -c 64 /dev/random | md5sum | head -c 12; }
+pwgen() { openssl rand -base64 12; }
 
 rand_port() { shuf -i 1024-65535 -n 1; }
 
 port_hold_check() { netstat -tlpn | awk '{print $4}' | cut -d ':' -f 2 | grep -E "^${1}$" > /dev/null;  }
 
 rand_cipher() { shuf -e "${CIPHERS[@]}" -n 1; }
-
-install_libsodium() {
-  apt-get install -y build-essential libsodium-dev
-  wget https://download.libsodium.org/libsodium/releases/LATEST.tar.gz -O libsodium-stable.tar.gz
-  tar xf libsodium-stable.tar.gz
-  cd libsodium-stable
-  ./configure --prefix=/usr && make && make install
-  ldconfig
-  cd ..
-  rm -rf libsodium-stable.tar.gz libsodium-stable
-}
 
 install_shadowsocks() {
   apt-get install -y libsodium-dev python3-pip
