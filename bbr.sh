@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# launch BBR on ubuntu v17.10
+# launch BBR on ubuntu v17.10 and above
 
 version_ge() { test "$(echo "$1 $2" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
 

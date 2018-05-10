@@ -13,21 +13,35 @@ CIPHERS=(
   chacha20-ietf
 )
 
+is_command() { command -v $@ &> /dev/null; }
+
 pwgen() { openssl rand -base64 12; }
 
-rand_port() { shuf -i 1024-65535 -n 1; }
+rand_port() {
+  local port_range
+  if port_range=`sysctl net.ipv4.ip_local_port_range`; then 
+    local port_start=`awk '{print $3}' <<< "$port_range"`
+    local port_end=`awk '{print $4}' <<< "$port_range"`
+  fi
+
+  if [[ -n $port_start ]] && [[ -n $port_end ]]; then
+    shuf -i ${port_start}-${port_end} -n 1
+  else
+    shuf -i 1024-65535 -n 1
+  fi
+}
 
 port_hold_check() { netstat -tlpn | awk '{print $4}' | cut -d ':' -f 2 | grep -E "^${1}$" > /dev/null;  }
 
 rand_cipher() { shuf -e "${CIPHERS[@]}" -n 1; }
 
 install_shadowsocks() {
-  apt-get install -y libsodium-dev python3-pip
+  apt install -y libsodium-dev python3-pip python3-setuptools
   pip3 install setuptools
   pip3 install -U https://github.com/shadowsocks/shadowsocks/archive/master.zip
 }
 
-install_qrencode() { apt-get install -y qrencode; }
+install_qrencode() { apt install -y qrencode; }
 
 run_on_startup() {
   cat > "$SERVICE_FILE" <<-EOF
@@ -45,10 +59,10 @@ run_on_startup() {
 }
 
 pre_install() {
-  if ! command -v "ssserver" > /dev/null; then
+  if ! is_command ssserver; then
     install_shadowsocks
   fi
-  if ! command -v "qrencode" > /dev/null; then
+  if ! is_command qrencode; then
     install_qrencode
   fi
   mkdir -p /etc/shadowsocks
@@ -57,15 +71,15 @@ pre_install() {
 }
 
 launch() {
-  if ! command -v "ssserver" > /dev/null; then
+  if ! is_command ssserver; then
     echo
     echo "[ERROR] shadowsocks is not installed! Cannot to launch it!"
     return 1
   fi
 
-  cipher=`rand_cipher`
-  passwd=`pwgen`
-  port=`rand_port`
+  local cipher=`rand_cipher`
+  local passwd=`pwgen`
+  local port=`rand_port`
   while port_hold_check "$port"; do
     port=`rand_port`
   done
@@ -93,13 +107,13 @@ launch() {
     return 1
   fi
 
-  public_ipv4=`curl -s4 icanhazip.com`
-  public_ipv6=`curl -s6 icanhazip.com`
+  local public_ipv4=`curl -s4 icanhazip.com`
+  local public_ipv6=`curl -s6 icanhazip.com`
   # protocol ss://method:password@hostname:port
-  config_ipv4="${cipher}:${passwd}@${public_ipv4}:${port}"
-  config_ipv6="${cipher}:${passwd}@${public_ipv6}:${port}"
-  ss_ipv4_url="ss://`echo $config_ipv4 | base64 -w 0`"
-  ss_ipv6_url="ss://`echo $config_ipv6 | base64 -w 0`"
+  local config_ipv4="${cipher}:${passwd}@${public_ipv4}:${port}"
+  local config_ipv6="${cipher}:${passwd}@${public_ipv6}:${port}"
+  local ss_ipv4_url="ss://`echo $config_ipv4 | base64 -w 0`"
+  local ss_ipv6_url="ss://`echo $config_ipv6 | base64 -w 0`"
 
   echo
   echo "shadowsocks server ipv4 config QRCode saved to $QRCOED_IPv4_FILE"
